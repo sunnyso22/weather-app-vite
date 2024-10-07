@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { css } from 'styled-components';
 
 import CloudyIcon from './images/day-cloudy.svg?react';
 import RainIcon from './images/rain.svg?react';
@@ -88,37 +87,86 @@ const Cloudy = styled(CloudyIcon)`
     flex-basis: 30%;
 `;
 
-const Refresh = styled(RefreshIcon)`
-    width: 15px;
-    height: 15px;
+const Refresh = styled.div`
     position: absolute;
     right: 15px;
     bottom: 15px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: flex-end;
+    color: #828282;
+
+    svg {
+    margin-left: 10px;
+    width: 15px;
+    height: 15px;
     cursor: pointer;
+    }
 `;
 
-
 const WeatherApp = () => {
+    const [currentWeather, setCurrentWeather] = useState({
+        observationTime: '2019-10-02 22:10:00',
+        locationName: '臺北市',
+        description: '多雲時晴',
+        temperature: 27.5,
+        windSpeed: 0.3,
+        humid: 0.88,
+    })
+
+    const handleClick = () => {
+        fetch(
+        'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=臺北'
+        )
+        .then((response) => response.json())
+        .then((data) => {
+            const stationData = data.records.Station[0];
+            
+            const weatherElements = {
+                "AirTemperature": stationData.WeatherElement.AirTemperature,
+                "WindSpeed": stationData.WeatherElement.WindSpeed,
+                "RelativeHumidity" : stationData.WeatherElement.RelativeHumidity,
+            }
+
+            setCurrentWeather({
+                observationTime: stationData.ObsTime.DateTime,
+                locationName: stationData.StationName,
+                description: '多雲時晴',
+                temperature: weatherElements.AirTemperature,
+                windSpeed: weatherElements.WindSpeed,
+                humid: weatherElements.RelativeHumidity,
+            });
+        });
+    };
+
     return (
         <Container>
             <WeatherCard>
-                <Location theme="light">台北市</Location>
-                <Description>多雲時晴</Description>
+                <Location theme="light">{currentWeather.locationName}</Location>
+                <Description>
+                    {currentWeather.description}</Description>
                 <CurrentWeather>
                     <Temperature>
-                        23 <Celsius>°C</Celsius>
+                    {Math.round(currentWeather.temperature)} <Celsius>°C</Celsius>
                     </Temperature>
                     <Cloudy />
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
-                    23 m/h
+                    {currentWeather.windSpeed} m/h
                 </AirFlow>
                 <Rain>
                     <RainIcon />
-                    48%
+                    {Math.round(currentWeather.humid)} %
                 </Rain>
-                <Refresh />
+                <Refresh onClick={handleClick}>
+                    最後觀測時間：
+                    {new Intl.DateTimeFormat('zh-TW', {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    }).format(new Date(currentWeather.observationTime))}{' '}
+                    <RefreshIcon />
+                </Refresh>
             </WeatherCard>
         </Container>
     );

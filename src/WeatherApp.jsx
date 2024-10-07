@@ -1,5 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
+
+import CloudyIcon from './images/day-cloudy.svg?react';
+import RainIcon from './images/rain.svg?react';
+import AirFlowIcon from './images/airflow.svg?react';
+import RefreshIcon from './images/refresh.svg?react';
 
 const Container = styled.div`
     background-color: #ededed;
@@ -20,7 +26,7 @@ const WeatherCard = styled.div`
 
 const Location = styled.div`
     font-size: 28px;
-    color: #212121;
+    color: ${props => props.theme === 'dark' ? '#dadada' : '#212121'};
     margin-bottom: 20px;
 `;
 
@@ -56,6 +62,12 @@ const AirFlow = styled.div`
     font-weight: 300;
     color: #828282;
     margin-bottom: 20px;
+
+    svg {
+        width: 25px;
+        height: auto;
+        margin-right: 30px;
+    }
 `;
 
 const Rain = styled.div`
@@ -64,21 +76,49 @@ const Rain = styled.div`
     font-size: 16x;
     font-weight: 300;
     color: #828282;
+
+    svg {
+        width: 25px;
+        height: auto;
+        margin-right: 30px;
+    }
 `;
+
+const Cloudy = styled(CloudyIcon)`
+    flex-basis: 30%;
+`;
+
+const Refresh = styled(RefreshIcon)`
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    right: 15px;
+    bottom: 15px;
+    cursor: pointer;
+`;
+
 
 const WeatherApp = () => {
     return (
         <Container>
             <WeatherCard>
-                <Location>台北市</Location>
+                <Location theme="light">台北市</Location>
                 <Description>多雲時晴</Description>
                 <CurrentWeather>
                     <Temperature>
                         23 <Celsius>°C</Celsius>
                     </Temperature>
+                    <Cloudy />
                 </CurrentWeather>
-                <AirFlow>23 m/h</AirFlow>
-                <Rain>48%</Rain>
+                <AirFlow>
+                    <AirFlowIcon />
+                    23 m/h
+                </AirFlow>
+                <Rain>
+                    <RainIcon />
+                    48%
+                </Rain>
+                <Refresh />
             </WeatherCard>
         </Container>
     );

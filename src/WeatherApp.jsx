@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 import CloudyIcon from './images/day-cloudy.svg?react';
@@ -105,17 +105,39 @@ const Refresh = styled.div`
 `;
 
 const WeatherApp = () => {
-    const [currentWeather, setCurrentWeather] = useState({
-        observationTime: '2019-10-02 22:10:00',
-        locationName: '臺北市',
-        description: '多雲時晴',
-        temperature: 27.5,
-        windSpeed: 0.3,
-        humid: 0.88,
+    //console.log('--- invoke function component ---');
+
+    const [weatherElements, setWeatherElements] = useState({
+        observationTime: new Date(),
+        locationName: '',
+        humid: 0,
+        temperature: 0,
+        windSpeed: 0,
+        description: '',
+        weatherCode: 0,
+        rainPossibility: 0,
+        comfortability: '',
     })
 
-    const handleClick = () => {
-        fetch(
+    useEffect(() => {
+        //console.log('execute function in useEffect');
+        const fetchData = async () => {
+            const [currentWeather, weatherForecast] = await Promise.all([
+                fetchCurrentWeather(),
+                fetchWeatherForecast(),
+            ])
+
+            setWeatherElements({
+                ...currentWeather,
+                ...weatherForecast,
+            })
+        }
+
+        fetchData()
+    }, [])
+
+    const fetchCurrentWeather = () => {
+        return fetch(
         'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=臺北'
         )
         .then((response) => response.json())
@@ -128,48 +150,78 @@ const WeatherApp = () => {
                 "RelativeHumidity" : stationData.WeatherElement.RelativeHumidity,
             }
 
-            setCurrentWeather({
+            return{
                 observationTime: stationData.ObsTime.DateTime,
                 locationName: stationData.StationName,
-                description: '多雲時晴',
                 temperature: weatherElements.AirTemperature,
                 windSpeed: weatherElements.WindSpeed,
                 humid: weatherElements.RelativeHumidity,
-            });
-        });
-    };
+            }
+        })
+    }
+
+    const fetchWeatherForecast = () => {
+        return fetch(
+            'https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&locationName=臺北市'
+        )
+        .then((response) => response.json())
+        .then((data) => {
+            const locationData = data.records.location[0];
+            const weatherElements = locationData.weatherElement.reduce(
+                (neededElements, item) => {
+                    if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
+                        neededElements[item.elementName] = item.time[0].parameter;
+                    }
+                return neededElements;
+                }, {}
+            )
+
+            return {
+                description: weatherElements.Wx.parameterName,
+                weatherCode: weatherElements.Wx.parameterValue,
+                rainPossibility: weatherElements.PoP.parameterName,
+                comfortability: weatherElements.CI.parameterName,
+            }
+        })
+    }
 
     return (
         <Container>
+            {/* {console.log('render')} */}
             <WeatherCard>
-                <Location theme="light">{currentWeather.locationName}</Location>
+                <Location theme="light">{weatherElements.locationName}</Location>
                 <Description>
-                    {currentWeather.description}</Description>
+                    {weatherElements.description} {weatherElements.comfortability}</Description>
                 <CurrentWeather>
                     <Temperature>
-                    {Math.round(currentWeather.temperature)} <Celsius>°C</Celsius>
+                    {Math.round(weatherElements.temperature)} <Celsius>°C</Celsius>
                     </Temperature>
                     <Cloudy />
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />
-                    {currentWeather.windSpeed} m/h
+                    {weatherElements.windSpeed} m/h
                 </AirFlow>
                 <Rain>
                     <RainIcon />
-                    {Math.round(currentWeather.humid)} %
+                    {Math.round(weatherElements.rainPossibility)} %
                 </Rain>
-                <Refresh onClick={handleClick}>
+                <Refresh 
+                    onClick={() => {
+                        fetchCurrentWeather()
+                        fetchWeatherForecast()
+                    }}
+                >
                     最後觀測時間：
                     {new Intl.DateTimeFormat('zh-TW', {
                     hour: 'numeric',
                     minute: 'numeric',
-                    }).format(new Date(currentWeather.observationTime))}{' '}
+                    }).format(new Date(weatherElements.observationTime))}{' '}
                     <RefreshIcon />
                 </Refresh>
             </WeatherCard>
         </Container>
-    );
-};
+    )
+}
 
 export default WeatherApp;

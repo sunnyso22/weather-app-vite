@@ -5,6 +5,7 @@ import CloudyIcon from './images/day-cloudy.svg?react';
 import RainIcon from './images/rain.svg?react';
 import AirFlowIcon from './images/airflow.svg?react';
 import RefreshIcon from './images/refresh.svg?react';
+import WeatherIcon  from './WeatherIcon';
 
 const Container = styled.div`
     background-color: #ededed;
@@ -83,10 +84,6 @@ const Rain = styled.div`
     }
 `;
 
-const Cloudy = styled(CloudyIcon)`
-    flex-basis: 30%;
-`;
-
 const Refresh = styled.div`
     position: absolute;
     right: 15px;
@@ -113,9 +110,9 @@ const fetchCurrentWeather = () => {
         const stationData = data.records.Station[0];
         
         const weatherElements = {
-            "AirTemperature": stationData.WeatherElement.AirTemperature,
-            "WindSpeed": stationData.WeatherElement.WindSpeed,
-            "RelativeHumidity" : stationData.WeatherElement.RelativeHumidity,
+            AirTemperature: stationData.WeatherElement.AirTemperature,
+            WindSpeed: stationData.WeatherElement.WindSpeed,
+            RelativeHumidity: stationData.WeatherElement.RelativeHumidity,
         }
 
         return{
@@ -200,7 +197,7 @@ const WeatherApp = () => {
                     <Temperature>
                     {Math.round(weatherElements.temperature)} <Celsius>°C</Celsius>
                     </Temperature>
-                    <Cloudy />
+                    <WeatherIcon />
                 </CurrentWeather>
                 <AirFlow>
                     <AirFlowIcon />

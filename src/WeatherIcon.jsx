@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 
 import DayThunderstorm from './images/day-thunderstorm.svg?react';
@@ -19,7 +19,7 @@ import NightSnowing from './images/night-snowing.svg?react';
 const IconContainer = styled.div`
     flex-basis: 30%;
 
-    ?react {
+    svg {
         max-height: 110px;
     }
 `;
@@ -59,30 +59,28 @@ const weatherIcons = {
     },
   }
 
+const weatherCode2Type = (weatherCode) => {
+    const [weatherType] =
+        Object.entries(weatherTypes).find(([weatherType, weatherCodes]) =>
+            weatherCodes.includes(Number(weatherCode))
+        ) || []
 
+    return weatherType
+}
 
 const WeatherIcon = ({currentWeatherCode, moment}) => {
 
     const [currentWeatherIcon, setCurrentWeatherIcon] = useState("isClear")
 
-    useEffect(() => {
-        
-        const weatherCode2Type = (weatherCode) => {
-            const [weatherType] =
-                Object.entries(weatherTypes).find(([weatherType, weatherCodes]) =>
-                    weatherCodes.includes(Number(weatherCode))
-                ) || [];
-
-            return weatherType;
-        }
-
-        const currentWeatherIcon = weatherCode2Type(currentWeatherCode);
-
-        setCurrentWeatherIcon(currentWeatherIcon);
-
-    }, [currentWeatherCode]
+    const theWeatherIcon = useMemo(
+        () => weatherCode2Type(currentWeatherCode), [currentWeatherCode]
     )
 
+    useEffect(
+        () => {
+            setCurrentWeatherIcon(theWeatherIcon);
+        }, [theWeatherIcon]
+    )
 
     return (
         <IconContainer>

@@ -102,9 +102,7 @@ const Refresh = styled.div`
 `;
 
 const fetchCurrentWeather = () => {
-    return fetch(
-    'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=臺北'
-    )
+    return fetch('https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=臺北')
     .then((response) => response.json())
     .then((data) => {
         const stationData = data.records.Station[0];
@@ -117,7 +115,7 @@ const fetchCurrentWeather = () => {
 
         return{
             observationTime: stationData.ObsTime.DateTime,
-            locationName: stationData.StationName,
+            locationName: stationData.GeoInfo.CountyName,
             temperature: weatherElements.AirTemperature,
             windSpeed: weatherElements.WindSpeed,
             humid: weatherElements.RelativeHumidity,
@@ -126,12 +124,11 @@ const fetchCurrentWeather = () => {
 }
 
 const fetchWeatherForecast = () => {
-    return fetch(
-        'https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&locationName=臺北市'
-    )
+    return fetch('https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&locationName=臺北市')
     .then((response) => response.json())
     .then((data) => {
-        const locationData = data.records.location[0];
+        const locationData = data.records.location[0]
+
         const weatherElements = locationData.weatherElement.reduce(
             (neededElements, item) => {
                 if (['Wx', 'PoP', 'CI'].includes(item.elementName)) {
@@ -150,8 +147,31 @@ const fetchWeatherForecast = () => {
     })
 }
 
+const getMoment = (locationName, nowTimestamp) => {
+    const now = new Date()
+    const nowDate = Intl.DateTimeFormat('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    })
+    .format(now)
+    .replace(/\//g, '-')
+
+    return fetch("https://opendata.cwa.gov.tw/api/v1/rest/datastore/A-B0062-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&CountyName="+locationName+"&Date="+nowDate+"&parameter=SunRiseTime,SunSetTime")
+    .then((response) => response.json())
+    .then((data) => {
+        const sunriseAndSunsetData = data.records.locations.location[0]
+
+        const sunriseTimestamp = new Date(`${sunriseAndSunsetData.time[0].Date} ${sunriseAndSunsetData.time[0].SunRiseTime}`).getTime()
+        const sunsetTimestamp = new Date(`${sunriseAndSunsetData.time[0].Date} ${sunriseAndSunsetData.time[0].SunSetTime}`).getTime()
+
+        return sunriseTimestamp <= nowTimestamp && nowTimestamp <= sunsetTimestamp ? 
+        {moment: "day"} : {moment : "night"}
+    })
+}
+
 const WeatherApp = () => {
-    //console.log('--- invoke function component ---');
+    console.log('--- invoke function component ---');
 
     const [weatherElements, setWeatherElements] = useState({
         observationTime: new Date(),
@@ -163,18 +183,21 @@ const WeatherApp = () => {
         weatherCode: 0,
         rainPossibility: 0,
         comfortability: '',
+        moment: '',
     })
 
     const fetchData = useCallback(() => {
         const fetchingData = async () => {
-            const [currentWeather, weatherForecast] = await Promise.all([
+            const [currentWeather, weatherForecast, moment] = await Promise.all([
                 fetchCurrentWeather(),
                 fetchWeatherForecast(),
+                getMoment(weatherElements.locationName, Date.now())
             ])
 
             setWeatherElements({
                 ...currentWeather,
                 ...weatherForecast,
+                ...moment,
             })
         }
 
@@ -182,13 +205,13 @@ const WeatherApp = () => {
     }, [])
 
     useEffect(() => {
-        //console.log('execute function in useEffect');
+        console.log('execute function in useEffect');
         fetchData()
     }, [fetchData])
 
     return (
         <Container>
-            {/* {console.log('render')} */}
+            {console.log('render')}
             <WeatherCard>
                 <Location theme="light">{weatherElements.locationName}</Location>
                 <Description>
@@ -199,7 +222,7 @@ const WeatherApp = () => {
                     </Temperature>
                     <WeatherIcon 
                         currentWeatherCode={weatherElements.weatherCode}
-                        moment="night"
+                        moment={weatherElements.moment || "day"}
                     />
                 </CurrentWeather>
                 <AirFlow>

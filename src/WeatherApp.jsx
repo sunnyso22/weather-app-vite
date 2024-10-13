@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 
-import CloudyIcon from './images/day-cloudy.svg?react';
+import LoadingIcon from './images/loading.svg?react';
 import RainIcon from './images/rain.svg?react';
 import AirFlowIcon from './images/airflow.svg?react';
 import RefreshIcon from './images/refresh.svg?react';
@@ -94,10 +94,21 @@ const Refresh = styled.div`
     color: #828282;
 
     svg {
-    margin-left: 10px;
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
+        margin-left: 10px;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        animation: rotate infinite 1.5s linear;
+        animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
+    }
+
+    @keyframes rotate {
+        from {
+            transform: rotate(360deg);
+        }
+        to {
+            transform: rotate(0deg);
+        }
     }
 `;
 
@@ -184,6 +195,7 @@ const WeatherApp = () => {
         rainPossibility: 0,
         comfortability: '',
         moment: '',
+        isLoading: true,
     })
 
     const fetchData = useCallback(() => {
@@ -198,8 +210,16 @@ const WeatherApp = () => {
                 ...currentWeather,
                 ...weatherForecast,
                 ...moment,
+                isLoading: false,
             })
         }
+
+        setWeatherElements((prevState) => (
+            {
+                ...prevState,
+                isLoading: true,
+            }
+        ))
 
         fetchingData()
     }, [])
@@ -211,7 +231,7 @@ const WeatherApp = () => {
 
     return (
         <Container>
-            {console.log('render')}
+            {console.log('render, isLoading: ', weatherElements.isLoading)}
             <WeatherCard>
                 <Location theme="light">{weatherElements.locationName}</Location>
                 <Description>
@@ -233,13 +253,13 @@ const WeatherApp = () => {
                     <RainIcon />
                     {Math.round(weatherElements.rainPossibility)} %
                 </Rain>
-                <Refresh onClick={fetchData}>
+                <Refresh onClick={fetchData} isLoading={weatherElements.isLoading}>
                     最後觀測時間：
                     {new Intl.DateTimeFormat('zh-TW', {
                     hour: 'numeric',
                     minute: 'numeric',
                     }).format(new Date(weatherElements.observationTime))}{' '}
-                    <RefreshIcon />
+                    {weatherElements.isLoading ? <LoadingIcon /> : <RefreshIcon />}
                 </Refresh>
             </WeatherCard>
         </Container>

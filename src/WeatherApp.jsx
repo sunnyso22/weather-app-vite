@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { ThemeProvider } from 'styled-components';
 import WeatherCard from './WeatherCard';
 import useWeatherApi from './useWeatherApi';
+import WeatherSetting from './WeatherSetting';
 
 const theme = {
     light: {
@@ -36,6 +37,7 @@ const WeatherApp = () => {
 
     const [weatherElements, fetchData] = useWeatherApi();
     const [currentTheme, setCurrentTheme] = useState('light');
+    const [currentPage, setCurrentPage] = useState('WeatherCard');
 
     useEffect(() => {
         setCurrentTheme(weatherElements.moment === 'day' ? 'light' : 'dark');
@@ -45,10 +47,17 @@ const WeatherApp = () => {
         <ThemeProvider theme={theme[currentTheme]}>
             <Container>
                 {console.log('render, isLoading: ', weatherElements.isLoading)}
-                <WeatherCard 
-                    weatherElements={weatherElements}
-                    fetchData={fetchData}
-                />
+                {currentPage === "WeatherCard" && (
+                    <WeatherCard 
+                        weatherElements={weatherElements}
+                        fetchData={fetchData}
+                        setCurrentPage={setCurrentPage}
+                    />
+                )}
+
+                {currentPage === "WeatherSetting" && (
+                    <WeatherSetting setCurrentPage={setCurrentPage}/>
+                )}
             </Container>
         </ThemeProvider>
     )

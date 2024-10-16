@@ -6,6 +6,7 @@ import RainIcon from './images/rain.svg?react';
 import AirFlowIcon from './images/airflow.svg?react';
 import RefreshIcon from './images/refresh.svg?react';
 import WeatherIcon  from './WeatherIcon';
+import CogIcon from './images/cog.svg?react';
 
 const WeatherCardWrapper = styled.div`
     position: relative;
@@ -91,7 +92,7 @@ const Refresh = styled.div`
         height: 15px;
         cursor: pointer;
         animation: rotate infinite 1.5s linear;
-        animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')};
+        animation-duration: ${({ $isLoading }) => ($isLoading ? '1.5s' : '0s')};
     }
 
     @keyframes rotate {
@@ -104,9 +105,18 @@ const Refresh = styled.div`
     }
 `;
 
+const Cog = styled(CogIcon)`
+    position: absolute;
+    top: 30px;
+    right: 15px;
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+`;
+
 const WeatherCard = (props) => {
 
-    const { weatherElements, fetchData } = props
+    const { weatherElements, fetchData, setCurrentPage } = props
 
     //optional to destruct
     // const {
@@ -124,6 +134,7 @@ const WeatherCard = (props) => {
 
     return (
         <WeatherCardWrapper>
+            <Cog onClick={() => setCurrentPage('WeatherSetting')} />
             <Location>{weatherElements.locationName}</Location>
             <Description>
                 {weatherElements.description} {weatherElements.comfortability}</Description>
@@ -144,7 +155,7 @@ const WeatherCard = (props) => {
                 <RainIcon />
                 {Math.round(weatherElements.rainPossibility)} %
             </Rain>
-            <Refresh onClick={fetchData} isLoading={weatherElements.isLoading}>
+            <Refresh onClick={fetchData} $isLoading={weatherElements.isLoading}>
                 最後觀測時間：
                 {new Intl.DateTimeFormat('zh-TW', {
                 hour: 'numeric',

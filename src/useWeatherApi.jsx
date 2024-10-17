@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const fetchCurrentWeather = () => {
-    return fetch('https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=臺北')
+const fetchCurrentWeather = (stationName) => {
+    return fetch(`https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&StationName=${stationName}`)
     .then((response) => response.json())
     .then((data) => {
         const stationData = data.records.Station[0];
@@ -22,8 +22,8 @@ const fetchCurrentWeather = () => {
     })
 }
 
-const fetchWeatherForecast = () => {
-    return fetch('https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&locationName=臺北市')
+const fetchWeatherForecast = (countyName) => {
+    return fetch(`https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&locationName=${countyName}`)
     .then((response) => response.json())
     .then((data) => {
         const locationData = data.records.location[0]
@@ -46,7 +46,7 @@ const fetchWeatherForecast = () => {
     })
 }
 
-const getMoment = (locationName, nowTimestamp) => {
+const getMoment = (countyName, nowTimestamp) => {
     const now = new Date()
     const nowDate = Intl.DateTimeFormat('zh-TW', {
         year: 'numeric',
@@ -56,7 +56,7 @@ const getMoment = (locationName, nowTimestamp) => {
     .format(now)
     .replace(/\//g, '-')
 
-    return fetch("https://opendata.cwa.gov.tw/api/v1/rest/datastore/A-B0062-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&CountyName="+locationName+"&Date="+nowDate+"&parameter=SunRiseTime,SunSetTime")
+    return fetch(`https://opendata.cwa.gov.tw/api/v1/rest/datastore/A-B0062-001?Authorization=CWA-4A0FAECA-F06E-4219-9093-4F4A90A2395B&CountyName=${countyName}&Date=${nowDate}&parameter=SunRiseTime,SunSetTime`)
     .then((response) => response.json())
     .then((data) => {
         const sunriseAndSunsetData = data.records.locations.location[0]
@@ -69,7 +69,9 @@ const getMoment = (locationName, nowTimestamp) => {
     })
 }
 
-const useWeatherApi = () => {
+const useWeatherApi = (currentLocation) => {
+    const { stationName, countyName } = currentLocation
+
     const [weatherElements, setWeatherElements] = useState({
         observationTime: new Date(),
         locationName: '',
@@ -87,9 +89,9 @@ const useWeatherApi = () => {
     const fetchData = useCallback(() => {
         const fetchingData = async () => {
             const [currentWeather, weatherForecast, moment] = await Promise.all([
-                fetchCurrentWeather(),
-                fetchWeatherForecast(),
-                getMoment(weatherElements.locationName, Date.now())
+                fetchCurrentWeather(stationName),
+                fetchWeatherForecast(countyName),
+                getMoment(countyName, Date.now())
             ])
 
             setWeatherElements({
@@ -108,7 +110,7 @@ const useWeatherApi = () => {
         ))
 
         fetchingData()
-    }, [])
+    }, [stationName, countyName])
 
     useEffect(() => {
         console.log('execute function in useEffect');

@@ -36,12 +36,14 @@ const Container = styled.div`
 const WeatherApp = () => {
     console.log('--- invoke function component ---');
 
-    const [weatherElements, fetchData] = useWeatherApi();
+    
     const [currentTheme, setCurrentTheme] = useState('light');
     const [currentPage, setCurrentPage] = useState('WeatherCard');
-    const [currentCounty, setCurrentCounty] = useState('臺北市');
 
+    const [currentCounty, setCurrentCounty] = useState('臺北市');
     const currentLocation = findLocation(currentCounty) || {}
+
+    const [weatherElements, fetchData] = useWeatherApi(currentLocation);
 
     useEffect(() => {
         setCurrentTheme(weatherElements.moment === 'day' ? 'light' : 'dark');

@@ -116,52 +116,50 @@ const Cog = styled(CogIcon)`
 
 const WeatherCard = (props) => {
 
-    const { weatherElements, fetchData, setCurrentPage } = props
+    const { weatherElements, fetchData, setCurrentPage, countyName } = props
 
-    //optional to destruct
-    // const {
-    //     observationTime,
-    //     locationName,
-    //     temperature,
-    //     windSpeed,
-    //     description,
-    //     weatherCode,
-    //     rainPossibility,
-    //     comfortability,
-    //     moment,
-    //     isLoading,
-    // } = weatherElements;
+    const {
+        observationTime,
+        temperature,
+        windSpeed,
+        description,
+        weatherCode,
+        rainPossibility,
+        comfortability,
+        moment,
+        isLoading,
+    } = weatherElements;
 
     return (
         <WeatherCardWrapper>
             <Cog onClick={() => setCurrentPage('WeatherSetting')} />
-            <Location>{weatherElements.locationName}</Location>
+            <Location>{countyName}</Location>
             <Description>
-                {weatherElements.description} {weatherElements.comfortability}</Description>
+                {description} {comfortability}</Description>
             <CurrentWeather>
                 <Temperature>
-                {Math.round(weatherElements.temperature)} <Celsius>°C</Celsius>
+                {Math.round(temperature)} <Celsius>°C</Celsius>
                 </Temperature>
                 <WeatherIcon 
-                    currentWeatherCode={weatherElements.weatherCode}
-                    moment={weatherElements.moment || "day"}
+                    currentWeatherCode={weatherCode}
+                    moment={moment || "day"}
                 />
             </CurrentWeather>
             <AirFlow>
                 <AirFlowIcon />
-                {weatherElements.windSpeed} m/h
+                {windSpeed} m/h
             </AirFlow>
             <Rain>
                 <RainIcon />
-                {Math.round(weatherElements.rainPossibility)} %
+                {Math.round(rainPossibility)} %
             </Rain>
-            <Refresh onClick={fetchData} $isLoading={weatherElements.isLoading}>
+            <Refresh onClick={fetchData} $isLoading={isLoading}>
                 最後觀測時間：
                 {new Intl.DateTimeFormat('zh-TW', {
                 hour: 'numeric',
                 minute: 'numeric',
-                }).format(new Date(weatherElements.observationTime))}{' '}
-                {weatherElements.isLoading ? <LoadingIcon /> : <RefreshIcon />}
+                }).format(new Date(observationTime))}{' '}
+                {isLoading ? <LoadingIcon /> : <RefreshIcon />}
             </Refresh>
         </WeatherCardWrapper>
     )

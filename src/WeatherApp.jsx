@@ -3,6 +3,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import WeatherCard from './WeatherCard';
 import useWeatherApi from './useWeatherApi';
 import WeatherSetting from './WeatherSetting';
+import { findLocation } from './utils';
 
 const theme = {
     light: {
@@ -38,6 +39,9 @@ const WeatherApp = () => {
     const [weatherElements, fetchData] = useWeatherApi();
     const [currentTheme, setCurrentTheme] = useState('light');
     const [currentPage, setCurrentPage] = useState('WeatherCard');
+    const [currentCounty, setCurrentCounty] = useState('臺北市');
+
+    const currentLocation = findLocation(currentCounty) || {}
 
     useEffect(() => {
         setCurrentTheme(weatherElements.moment === 'day' ? 'light' : 'dark');
@@ -48,7 +52,8 @@ const WeatherApp = () => {
             <Container>
                 {console.log('render, isLoading: ', weatherElements.isLoading)}
                 {currentPage === "WeatherCard" && (
-                    <WeatherCard 
+                    <WeatherCard
+                        countyName={currentLocation.countyName}
                         weatherElements={weatherElements}
                         fetchData={fetchData}
                         setCurrentPage={setCurrentPage}
@@ -56,7 +61,11 @@ const WeatherApp = () => {
                 )}
 
                 {currentPage === "WeatherSetting" && (
-                    <WeatherSetting setCurrentPage={setCurrentPage}/>
+                    <WeatherSetting 
+                        countyName={currentLocation.countyName}
+                        setCurrentCounty={setCurrentCounty}
+                        setCurrentPage={setCurrentPage}
+                    />
                 )}
             </Container>
         </ThemeProvider>

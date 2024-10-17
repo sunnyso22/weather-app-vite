@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 
+import { availableLocations } from './utils';
+
 const WeatherSettingWrapper = styled.div`
     position: relative;
     min-width: 360px;
@@ -87,16 +89,10 @@ const Save = styled.button`
 }
 `;
 
-const locations = [
-    
-    '臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市', 
-    '基隆市', '新竹市', '嘉義市', 
-    '新竹縣', '苗栗縣', '彰化縣', '南投縣', '雲林縣', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣', '臺東縣', '澎湖縣',
-    '金門縣', '連江縣',
-];
+const locations = availableLocations.map((location) => location.countyName);
 
-const WeatherSetting = ({ setCurrentPage }) => {
-    const [locationName, setLocationName] = useState('臺北市')
+const WeatherSetting = ({ setCurrentPage, countyName, setCurrentCounty }) => {
+    const [locationName, setLocationName] = useState(countyName)
 
     const handleChange = (e) => {
         setLocationName(e.target.value)
@@ -106,6 +102,7 @@ const WeatherSetting = ({ setCurrentPage }) => {
         if (locations.includes(locationName)) {
             console.log(`儲存的地區資訊為：${locationName}`);
 
+            setCurrentCounty(locationName)
             setCurrentPage('WeatherCard');
         } else {
             alert(`儲存失敗：您輸入的 ${locationName} 並非有效的地區`);

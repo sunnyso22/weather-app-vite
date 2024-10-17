@@ -35,12 +35,13 @@ const Container = styled.div`
 
 const WeatherApp = () => {
     console.log('--- invoke function component ---');
-
     
     const [currentTheme, setCurrentTheme] = useState('light');
     const [currentPage, setCurrentPage] = useState('WeatherCard');
 
-    const [currentCounty, setCurrentCounty] = useState('臺北市');
+    const storageCounty = localStorage.getItem('countyName');
+
+    const [currentCounty, setCurrentCounty] = useState(storageCounty || '臺北市');
     const currentLocation = findLocation(currentCounty) || {}
 
     const [weatherElements, fetchData] = useWeatherApi(currentLocation);
@@ -49,6 +50,10 @@ const WeatherApp = () => {
         setCurrentTheme(weatherElements.moment === 'day' ? 'light' : 'dark');
     }, [weatherElements.moment]);
     
+    useEffect(() => {
+        localStorage.setItem('countyName', currentCounty);
+    }, [currentCounty]);
+
     return (
         <ThemeProvider theme={theme[currentTheme]}>
             <Container>
